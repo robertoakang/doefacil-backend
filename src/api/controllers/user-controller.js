@@ -3,51 +3,49 @@ const bcrypt = require('bcrypt');
 const User = require('../../config/database/Models/User');
 const utils = require('../../utils/util');
 const emailProvider = require('../services/emailProvider');
+const companyController = require('./company-controller');
 
 class UserController {
-    async createUser(body) {
+    async createUser(req, res) {
         try {
+            const { name, password, email, stepOnboarding } = req.body;
             const codeConfirm = utils.generateRandomCode();
             const expiresDate = utils.addMinutes(new Date(), 20);
             const encryptPassword = bcrypt.hashSync(
-                body.password,
+                password,
                 parseInt(process.env.SALT_ROUNDS, 10)
             );
 
             await User.create({
-                name: body.name,
-                email: body.email,
+                name,
+                email,
                 password: encryptPassword,
                 codeConfirm,
-                stepOnboarding: body.stepOnboarding,
+                stepOnboarding,
                 confirmed: false,
                 dtExpireCodeConfirm: expiresDate,
             });
 
-            await emailProvider.sendConfirmCode(
-                body.email,
-                body.name,
-                codeConfirm
-            );
+            await emailProvider.sendConfirmCode(email, name, codeConfirm);
 
             const { dataValues } = await User.findOne({
-                where: { email: body.email },
+                where: { email },
             });
 
             delete dataValues.password;
-            return dataValues;
+            return res.code(200).send(dataValues);
         } catch (error) {
-            console.log(error);
+            return res.code(400).send({ response: 'Internal server error' });
         }
-        return false;
     }
 
-    async confirmEmail(body) {
+    async confirmEmail(req, res) {
         try {
-            const user = await User.findOne({ where: { email: body.email } });
+            const { code, email } = req.body;
+            const user = await User.findOne({ where: { email } });
             const now = new Date();
             if (
-                parseInt(body.code, 10) === parseInt(user.codeConfirm, 10) &&
+                parseInt(code, 10) === parseInt(user.codeConfirm, 10) &&
                 now <= user.dtExpireCodeConfirm
             ) {
                 user.confirmed = true;
@@ -58,10 +56,10 @@ class UserController {
                     expiresIn: '10h',
                 });
 
-                return { token, refreshToken: null };
+                return res.code(200).send({ token, refreshToken: null });
             }
         } catch (error) {
-            console.log(error);
+            return res.code(400).send({ response: 'Internal server error' });
         }
         return false;
     }
@@ -90,14 +88,16 @@ class UserController {
             const payload = dataValues;
             delete payload.password;
             const token = jwt.sign(payload, TOKEN_KEY, { expiresIn: '10h' });
+
+            const company = companyController.getCompanyByUserId(payload.id);
+
             return res.status(200).send({
                 user: payload,
-                company: null,
+                company,
                 access: { token, refreshToken: null },
             });
         } catch (error) {
-            console.log(error);
-            return false;
+            return res.code(400).send({ response: 'Internal server error' });
         }
     }
 
@@ -106,15 +106,14 @@ class UserController {
             const { id } = req.params;
             const user = await User.findByPk(id);
             if (!user) return res.code(404).send('Usuário não encontrado');
-            await Object.keys(req.body).forEach((field) => {
+            Object.keys(req.body).forEach((field) => {
                 user[field] = req.body[field];
             });
             await user.save();
             delete user.dataValues.password;
             return res.status(200).send(user.dataValues);
         } catch (error) {
-            console.log(error);
-            return false;
+            return res.code(400).send({ response: 'Internal server error' });
         }
     }
 
@@ -126,8 +125,20 @@ class UserController {
             delete user.dataValues.password;
             return res.status(200).send(user.dataValues);
         } catch (error) {
-            console.log(error);
-            return false;
+            return res.code(400).send({ response: 'Internal server error' });
+        }
+    }
+
+    async deleteUser(req, res) {
+        try {
+            const { id } = req.params;
+            const user = await User.findByPk(id);
+            if (!user) return res.code(404).send('Usuário não encontrado');
+            await companyController.deleteCompany(null, id);
+            await User.destroy({ where: { id } });
+            return res.status(200).send('ok');
+        } catch (error) {
+            return res.code(400).send({ response: 'Internal server error' });
         }
     }
 }

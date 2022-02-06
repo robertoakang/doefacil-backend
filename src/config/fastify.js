@@ -31,7 +31,7 @@ class Fastify {
             this.server.listen(process.env.PORT, () => {
                 log(`Server listening at port ${process.env.PORT}`);
                 // eslint-disable-next-line no-console
-                console.log(this.server.printRoutes());
+                // console.log(this.server.printRoutes());
             });
         } catch (error) {
             logError(error);

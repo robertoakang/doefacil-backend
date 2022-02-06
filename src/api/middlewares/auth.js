@@ -7,8 +7,13 @@ exports.authenticate = (req, res, next) => {
         '/api/v1/user/create',
         '/api/v1/user/confirm-email',
         '/api/v1/login',
+        '/api/v1/queryCompanies',
+        '/api/v1/map-company/',
     ];
-    if (nonAuthRoutes.includes(req.path)) return next();
+
+    const search = new RegExp(req.path.slice(8).split('/', 2)[0], 'i');
+    const route = nonAuthRoutes.filter((item) => search.test(item));
+    if (nonAuthRoutes.includes(req.path) || route) return next();
 
     const { TOKEN_KEY } = process.env;
 
