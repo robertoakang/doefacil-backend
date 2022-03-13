@@ -58,10 +58,11 @@ class UserController {
 
                 return res.code(200).send({ token, refreshToken: null });
             }
+
+            return false;
         } catch (error) {
             return res.code(400).send({ response: 'Internal server error' });
         }
-        return false;
     }
 
     async login(req, res) {
