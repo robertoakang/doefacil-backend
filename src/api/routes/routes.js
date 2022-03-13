@@ -14,6 +14,10 @@ module.exports = (http, opts, next) => {
     http.put('/user/:id', UserController.updateUser);
     http.get('/user/:id', UserController.getUser);
     http.post('/deleteUser/:id', UserController.deleteUser);
+    http.post('/email-change-login', UserController.emailChangeLogin);
+    http.post('/email-change-password', UserController.emailChangePassword);
+    http.post('/change-login', UserController.changeLogin);
+    http.post('/change-password', UserController.changePassword);
 
     // Company
     http.post('/company', CompanyController.createCompany);

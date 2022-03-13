@@ -55,6 +55,7 @@ const utils = {
                 city: company.city,
                 state: company.state,
                 cep: company.cep,
+                email: company.email,
                 phone: company.phone,
                 needs: JSON.parse(company.needs),
             };

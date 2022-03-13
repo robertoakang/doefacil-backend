@@ -9,11 +9,12 @@ exports.authenticate = (req, res, next) => {
         '/api/v1/login',
         '/api/v1/queryCompanies',
         '/api/v1/map-company/',
+        '/api/v1/email-change-password',
     ];
 
     const search = new RegExp(req.path.slice(8).split('/', 2)[0], 'i');
     const route = nonAuthRoutes.filter((item) => search.test(item));
-    if (nonAuthRoutes.includes(req.path) || route) return next();
+    if (nonAuthRoutes.includes(req.path) || route.length) return next();
 
     const { TOKEN_KEY } = process.env;
 
