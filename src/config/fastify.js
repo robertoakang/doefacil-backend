@@ -28,11 +28,13 @@ class Fastify {
                 methods: ['GET', 'DELETE', 'POST', 'PUT', 'PATCH'],
             });
             await this.setMiddlewares();
-            this.server.listen(process.env.PORT, () => {
-                log(`Server listening at port ${process.env.PORT}`);
-                // eslint-disable-next-line no-console
-                // console.log(this.server.printRoutes());
-            });
+            // this.server.listen(process.env.PORT, () => {
+            //     log(`Server listening at port ${process.env.PORT}`);
+            //     // eslint-disable-next-line no-console
+            //     // console.log(this.server.printRoutes());
+            // });
+            await this.server.listen(process.env.PORT, '0.0.0.0');
+            log(`Server listening at port ${process.env.PORT}`);
         } catch (error) {
             logError(error);
         }
