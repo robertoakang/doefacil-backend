@@ -28,7 +28,7 @@ class Fastify {
                 methods: ['GET', 'DELETE', 'POST', 'PUT', 'PATCH'],
             });
             await this.setMiddlewares();
-            this.server.listen(process.env.PORT, () => {
+            this.server.listen(process.env.PORT || 30000, () => {
                 log(`Server listening at port ${process.env.PORT}`);
                 // eslint-disable-next-line no-console
                 // console.log(this.server.printRoutes());
